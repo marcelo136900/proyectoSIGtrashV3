@@ -13,13 +13,22 @@
 
                     <!-- Contenedor del mapa -->
                     <div id="map" style="height: 500px; width: 100%;"></div>
+                    
+                    <!-- Botones de control -->
+                    <div class="button-group mt-3">
+                        <button id="toggleHeat" class="btn btn-primary">Mostrar/Ocultar Puntos de Calor</button>
+                        <button id="toggleMarkers" class="btn btn-secondary">Mostrar/Ocultar Marcadores</button>
+                        <button id="togglePolygons" class="btn btn-success">Mostrar/Ocultar Áreas</button>
+                        <button id="toggleRoutes" class="btn btn-warning">Mostrar/Ocultar Rutas</button>
+                        <button id="toggle-markers" class="btn btn-primary">Mostrar/Ocultar Marcadores</button>
+                        <button id="toggle-shapes" class="btn btn-secondary">Mostrar/Ocultar Formas</button>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CSS de Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <!-- JS de Leaflet -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Agregar scripts de Leaflet -->
+    @vite(['resources/js/app.js'])
 </x-app-layout>
