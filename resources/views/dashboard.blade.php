@@ -22,6 +22,9 @@
                         <button id="toggleRoutes" class="btn btn-warning">Mostrar/Ocultar Rutas</button>
                         <button id="toggle-markers" class="btn btn-primary">Mostrar/Ocultar Marcadores</button>
                         <button id="toggle-shapes" class="btn btn-secondary">Mostrar/Ocultar Formas</button>
+
+                        <button id="clearElements" class="btn btn-danger btn-sm mt-3">Eliminar todos los elementos</button>
+
                     </div>
 
                 </div>

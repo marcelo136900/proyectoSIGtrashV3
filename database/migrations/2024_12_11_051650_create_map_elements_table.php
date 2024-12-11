@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('map_elements', function (Blueprint $table) {
-            $table->id();
-            $table->enum('tipo', ['marcador', 'ruta', 'forma']);
-            $table->json('datos'); // Coordenadas y otros datos
-            $table->timestamps();
+        Schema::create('elementos_mapa', function (Blueprint $table) {
+            $table->id(); // Crea una columna 'id' como clave primaria
+            $table->enum('tipo', ['marcador', 'ruta', 'forma']); // Tipo del elemento
+            $table->json('datos'); // Column JSON para almacenar coordenadas y propiedades
+            $table->foreignId('creado_por')->constrained('usuarios')->onDelete('cascade'); // Relación con usuarios
+            $table->timestamps(); // Agrega columnas 'created_at' y 'updated_at'
         });
     }
 

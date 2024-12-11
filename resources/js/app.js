@@ -489,6 +489,41 @@ marcadorCampero.on("click", function () {
         map.addLayer(shapesLayer); // Muestra la capa de formas
     }
   });
+
+
+  //local storage
+  map.on(L.Draw.Event.CREATED, function (event) {
+    const layer = event.layer;
+
+    // Serializar los datos y añadir propiedades personalizadas
+    const geoJSON = layer.toGeoJSON();
+
+    // Añade un popup con información
+    const popupContent = prompt("Escribe información para este marcador (opcional):");
+    if (popupContent) {
+        geoJSON.properties = { popup: popupContent };
+    }
+
+    // Recuperar elementos existentes de Local Storage
+    let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+    elementosGuardados.push(geoJSON);
+
+    // Guardar de nuevo en Local Storage
+    localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+    // Mostrar el popup inmediatamente en el mapa del dashboard
+    if (popupContent) {
+        layer.bindPopup(popupContent).openPopup();
+    }
+
+    drawnItems.addLayer(layer); // Agregar la capa al grupo de elementos dibujados
+});
+
+
+
+
+
+
   
 
         // Forzar el redimensionamiento al cargar
@@ -497,3 +532,4 @@ marcadorCampero.on("click", function () {
         }, 500);
     }
 });
+
