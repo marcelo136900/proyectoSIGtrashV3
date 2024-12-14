@@ -2,7 +2,7 @@ import './bootstrap';
 
 import Alpine from 'alpinejs';
 
-import L from "leaflet";
+import L, { popup } from "leaflet";
 import "leaflet-draw";
 import "leaflet-routing-machine";
 import 'leaflet.heat';
@@ -491,7 +491,7 @@ marcadorCampero.on("click", function () {
   });
 
 
-  //local storage
+  /*/local storage
   map.on(L.Draw.Event.CREATED, function (event) {
     const layer = event.layer;
 
@@ -502,6 +502,7 @@ marcadorCampero.on("click", function () {
     const popupContent = prompt("Escribe información para este marcador (opcional):");
     if (popupContent) {
         geoJSON.properties = { popup: popupContent };
+        console.log(geoJSON);
     }
 
     // Recuperar elementos existentes de Local Storage
@@ -517,11 +518,47 @@ marcadorCampero.on("click", function () {
     }
 
     drawnItems.addLayer(layer); // Agregar la capa al grupo de elementos dibujados
+});*/
+
+
+//eliminar
+map.on(L.Draw.Event.CREATED, function (event) {
+  const layer = event.layer;
+
+  // Serializar los datos
+  const geoJSON = layer.toGeoJSON();
+  const popupContent = prompt("Escribe información para este marcador (opcional):");
+    if (popupContent) {
+        geoJSON.properties = { id: Date.now(), popup:popupContent }; // Asignar un ID único
+    }
+  
+
+  // Guardar en Local Storage
+  let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+  elementosGuardados.push(geoJSON);
+  localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+  // Agregar un popup con botón de eliminar
+  layer.bindPopup(`
+      <p>Información: ${geoJSON.properties.popup || "Sin descripción"}</p>
+      <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${geoJSON.properties.id})">Eliminar</button>
+      `).openPopup();
+      
+      
+      drawnItems.addLayer(layer);
 });
 
+// Función para eliminar un elemento específico
+function eliminarElemento(id) {
+  let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
 
+  // Filtrar los elementos para eliminar el seleccionado
+  elementosGuardados = elementosGuardados.filter((elem) => elem.properties.id !== id);
+  localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
 
-
+  // Recargar el mapa para reflejar los cambios
+  location.reload();
+}
 
 
   
@@ -532,4 +569,3 @@ marcadorCampero.on("click", function () {
         }, 500);
     }
 });
-
