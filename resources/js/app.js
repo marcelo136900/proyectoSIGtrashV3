@@ -550,6 +550,18 @@ map.on(L.Draw.Event.CREATED, function (event) {
       drawnItems.addLayer(layer);
 });
 
+
+document.getElementById('ocultarMarcador').addEventListener('click', function () {
+  if (map.hasLayer(markersLayer)) {
+      map.removeLayer(markersLayer);
+  } else {
+      map.addLayer(markersLayer);
+  }
+});
+
+
+
+
 // Función para eliminar un elemento específico
 
 

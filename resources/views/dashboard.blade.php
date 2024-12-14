@@ -23,6 +23,8 @@
                         <button id="toggle-markers" class="btn btn-primary">Mostrar/Ocultar Marcadores</button>
                         <button id="toggle-shapes" class="btn btn-secondary">Mostrar/Ocultar Formas</button>
 
+                        <button id="ocultarMarcador" class="btn btn-info">Mostrar/Ocultar Marcadores por tipo</button>
+
                         <button id="clearElements" class="btn btn-danger btn-sm mt-3">Eliminar todos los elementos</button>
 
                     </div>
