@@ -88,7 +88,7 @@ const rutaFicticia = {
       },
     ],
   };
-  
+
   //agregar la ruta ficticia la mapa
   L.geoJSON(rutaFicticia, {
     style: {
@@ -97,11 +97,11 @@ const rutaFicticia = {
       opacity: 0.8,
     },
   }).addTo(map);
-  
+
   //centrar el mapa en la ruta ficticia
   const bounds = L.geoJSON(rutaFicticia).getBounds();
   map.fitBounds(bounds);
-  
+
   //puntos de calor
   var heatLayer = L.heatLayer(
     [
@@ -111,7 +111,7 @@ const rutaFicticia = {
     ],
     { radius: 30 }
   ).addTo(map);
-  
+
   // 1. Resaltar área al pasar el mouse
   /*/ Zona campero, brasil, 6 de agosto y bolivar
   var polygonData1 = {
@@ -138,7 +138,7 @@ const rutaFicticia = {
     },
     properties: { name: "zona campero, brasil, 6 de agosto y bolivar" },
   };
-  
+
   var polygonLayer1 = L.geoJSON(polygonData1, {
     style: {
       color: "#3388ff",
@@ -199,7 +199,7 @@ const rutaFicticia = {
         });
     }
   }).addTo(map);
-  
+
   /*/ Mercado Fermin Lopez
   var polygonData2 = {
     type: "Feature",
@@ -217,7 +217,7 @@ const rutaFicticia = {
     },
     properties: { name: "mercado fermin lopez" },
   };
-  
+
   var polygonLayer2 = L.geoJSON(polygonData2, {
     style: {
       color: "#3388ff",
@@ -270,7 +270,7 @@ const rutaFicticia = {
         });
     }
   }).addTo(map);
-  
+
   //mini mapa
   var miniMapLayer = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -278,7 +278,7 @@ const rutaFicticia = {
   var miniMap = new L.Control.MiniMap(miniMapLayer, {
     toggleDisplay: true,
   }).addTo(map);
-  
+
   //Agregar un control de escala
   L.control
     .scale({
@@ -286,7 +286,7 @@ const rutaFicticia = {
       imperial: false,
     })
     .addTo(map);
-  
+
   //agregar marcador con popup
   let puntoMouse;
   map.on("click", function (e) {
@@ -298,7 +298,7 @@ const rutaFicticia = {
       )
       .openPopup();
   });
-  
+
   // Crear marcadores individuales
 const marcadorCampero = L.marker([-17.96678, -67.11470]).bindPopup("<b>Mercado Campero</b><br>Cantidad de basura: Media");
 const marcadorBolivar = L.marker([-17.97222, -67.10506]).bindPopup("<b>Mercado Bolivar</b><br>Cantidad de basura: Alta");
@@ -310,19 +310,19 @@ const puntoCriticoLayer = L.layerGroup([marcadorCampero, marcadorBolivar]).addTo
 marcadorCampero.on("click", function () {
     map.setView(marcadorCampero.getLatLng(), 16);
 });
-  
+
   /*/ Añadir un marcador para mercado bolivar
   const puntoCritico2 = L.marker([-17.97222, -67.10506], {
     title: "Mercado campero",
   })
     .bindPopup("<b>Mercado Bolivar</b><br>Cantidad de basura: Alta")
     .addTo(map);*/
-  
+
   /*/ Añadir popups y funcionalidades de zoom
   puntoCritico2.on("click", function () {
     map.setView(puntoCritico2.getLatLng(), 16);
   });*/
-  
+
   //trazar ruta entre puntos
   /*map.on('click',function (e){
     var endMarker=L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
@@ -367,8 +367,8 @@ marcadorCampero.on("click", function () {
           map.addLayer(routeLayer);
       }
   });
-  
-  
+
+
   //agregar eventos a los botones
   document.getElementById("toggleHeat").addEventListener("click", function () {
     if (map.hasLayer(heatLayer)) {
@@ -377,7 +377,7 @@ marcadorCampero.on("click", function () {
         map.addLayer(heatLayer);
     }
   });
-  
+
   document.getElementById("toggleMarkers").addEventListener("click", function () {
     if (map.hasLayer(puntoCriticoLayer)) {
         map.removeLayer(puntoCriticoLayer);
@@ -385,7 +385,7 @@ marcadorCampero.on("click", function () {
         map.addLayer(puntoCriticoLayer);
     }
   });
-  
+
   document.getElementById("toggleMarkers").addEventListener("click", function () {
     if (map.hasLayer(puntoMouse)) {
         map.removeLayer(puntoMouse);
@@ -393,7 +393,7 @@ marcadorCampero.on("click", function () {
         map.addLayer(puntoMouse);
     }
   });
-  
+
   document.getElementById("togglePolygons").addEventListener("click", function () {
     if (map.hasLayer(polygonLayer)) {
         map.removeLayer(polygonLayer);
@@ -401,7 +401,7 @@ marcadorCampero.on("click", function () {
         map.addLayer(polygonLayer);
     }
   });
-  
+
   document.getElementById("togglePolygons").addEventListener("click", function () {
     if (map.hasLayer(polygonLayer2)) {
         map.removeLayer(polygonLayer2);
@@ -409,18 +409,18 @@ marcadorCampero.on("click", function () {
         map.addLayer(polygonLayer2);
     }
   });
-  
+
   //leaflet draw
   // Añadir capa base
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
-  
+
   // Crear una capa para las ediciones
   var drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
-  
+
   // Configurar las herramientas de dibujo
   var drawControl = new L.Control.Draw({
       edit: {
@@ -435,14 +435,14 @@ marcadorCampero.on("click", function () {
       }
   });
   map.addControl(drawControl);
-  
+
   // Manejar eventos de dibujo
   map.on(L.Draw.Event.CREATED, function (event) {
       var layer = event.layer;
-  
+
       // Agregar la geometría a la capa de elementos dibujados
       drawnItems.addLayer(layer);
-  
+
       // Opcional: Mostrar las coordenadas en consola o popup
       if (layer instanceof L.Marker) {
           console.log("Coordenadas del marcador: ", layer.getLatLng());
@@ -458,7 +458,7 @@ marcadorCampero.on("click", function () {
   // Escucha el evento 'draw:created' de Leaflet Draw
   map.on(L.Draw.Event.CREATED, function (event) {
     var layer = event.layer;
-  
+
     // Determina el tipo de dibujo
     if (layer instanceof L.Marker) {
         markersLayer.addLayer(layer); // Añadir a la capa de marcadores
@@ -466,7 +466,7 @@ marcadorCampero.on("click", function () {
         shapesLayer.addLayer(layer); // Añadir a la capa de formas
     }
   });
-  
+
   document.getElementById('toggle-markers').addEventListener('click', function () {
     if (map.hasLayer(markersLayer)) {
         map.removeLayer(markersLayer);
@@ -474,7 +474,7 @@ marcadorCampero.on("click", function () {
         map.addLayer(markersLayer);
     }
   });
-  
+
   // Mostrar/ocultar formas
   document.getElementById('toggle-shapes').addEventListener('click', function () {
     if (map.hasLayer(shapesLayer)) {
@@ -528,10 +528,11 @@ map.on(L.Draw.Event.CREATED, function (event) {
   // Serializar los datos
   const geoJSON = layer.toGeoJSON();
   const popupContent = prompt("Escribe información para este marcador (opcional):");
-    if (popupContent) {
-        geoJSON.properties = { id: Date.now(), popup:popupContent }; // Asignar un ID único
+  const tipo = prompt("Escribe el tipo:");
+    if (popupContent && tipo) {
+        geoJSON.properties = { id: Date.now(), popup:popupContent, tipo: tipo }; // Asignar un ID único
     }
-  
+
 
   // Guardar en Local Storage
   let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
@@ -541,27 +542,19 @@ map.on(L.Draw.Event.CREATED, function (event) {
   // Agregar un popup con botón de eliminar
   layer.bindPopup(`
       <p>Información: ${geoJSON.properties.popup || "Sin descripción"}</p>
+      <p>TIPO: ${geoJSON.properties.tipo || "Sin tipo"}</p>
       <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${geoJSON.properties.id})">Eliminar</button>
       `).openPopup();
-      
-      
+
+
       drawnItems.addLayer(layer);
 });
 
 // Función para eliminar un elemento específico
-function eliminarElemento(id) {
-  let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
-
-  // Filtrar los elementos para eliminar el seleccionado
-  elementosGuardados = elementosGuardados.filter((elem) => elem.properties.id !== id);
-  localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
-
-  // Recargar el mapa para reflejar los cambios
-  location.reload();
-}
 
 
-  
+
+
 
         // Forzar el redimensionamiento al cargar
         setTimeout(() => {
@@ -569,3 +562,16 @@ function eliminarElemento(id) {
         }, 500);
     }
 });
+
+
+function eliminarElemento(id) {
+    console.log('hola mundo');
+    let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+
+    // Filtrar los elementos para eliminar el seleccionado
+    elementosGuardados = elementosGuardados.filter((elem) => elem.properties.id !== id);
+    localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+    // Recargar el mapa para reflejar los cambios
+    location.reload();
+  }

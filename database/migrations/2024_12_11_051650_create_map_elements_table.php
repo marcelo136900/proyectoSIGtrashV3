@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id(); // Crea una columna 'id' como clave primaria
             $table->enum('tipo', ['marcador', 'ruta', 'forma']); // Tipo del elemento
             $table->json('datos'); // Column JSON para almacenar coordenadas y propiedades
-            $table->foreignId('creado_por')->constrained('usuarios')->onDelete('cascade'); // Relación con usuarios
+            $table->foreignId('creado_por')->constrained('users')->onDelete('cascade'); // Relación con usuarios
             $table->timestamps(); // Agrega columnas 'created_at' y 'updated_at'
         });
     }
