@@ -436,7 +436,7 @@ marcadorCampero.on("click", function () {
   });
   map.addControl(drawControl);
 
-  // Manejar eventos de dibujo
+  /*/ Manejar eventos de dibujo
   map.on(L.Draw.Event.CREATED, function (event) {
       var layer = event.layer;
 
@@ -451,7 +451,61 @@ marcadorCampero.on("click", function () {
           console.log("Coordenadas de la geometría: ", layer.getLatLngs());
           layer.bindPopup("Geometría creada").openPopup();
       }
-  });
+  });*/
+  // Manejar eventos de dibujo
+map.on(L.Draw.Event.CREATED, function (event) {
+    const layer = event.layer;
+
+    // Serializar los datos
+    const geoJSON = layer.toGeoJSON();
+
+    // Verificar si es una polilínea (ruta) o cualquier otra geometría
+    if (layer instanceof L.Polyline) {
+        const rutaDescripcion = prompt("Escribe una descripción para la ruta (opcional):");
+
+        // Asignar atributos adicionales
+        geoJSON.properties = {
+            id: Date.now(), // Asignar un ID único
+            descripcion: rutaDescripcion || "Sin descripción",
+            tipo: "ruta",
+        };
+
+        // Guardar en Local Storage
+        let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+        elementosGuardados.push(geoJSON);
+        localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+        // Vincular un popup con información
+        layer.bindPopup(`<b>Descripción:</b> ${geoJSON.properties.descripcion}`).openPopup();
+    } else if (layer instanceof L.Marker) {
+        const popupContent = prompt("Escribe información para este marcador (opcional):");
+        const tipo = prompt("Escribe el tipo (basureros, contenedores, etc.):");
+
+        geoJSON.properties = {
+            id: Date.now(),
+            popup: popupContent || "Sin descripción",
+            tipo: tipo || "Sin tipo",
+        };
+
+        let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+        elementosGuardados.push(geoJSON);
+        localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+        layer.bindPopup(`
+            <table>
+                <tr><td><b>Descripción:</b></td><td>${geoJSON.properties.popup}</td></tr>
+                <tr><td><b>Tipo:</b></td><td>${geoJSON.properties.tipo}</td></tr>
+            </table>
+        `).openPopup();
+    }
+
+    // Agregar el layer al mapa
+    drawnItems.addLayer(layer);
+});
+
+
+
+
   // Crear capas separadas para marcadores y formas
   var markersLayer = L.layerGroup().addTo(map);
   var shapesLayer = L.layerGroup().addTo(map);
@@ -521,7 +575,7 @@ marcadorCampero.on("click", function () {
 });*/
 
 
-//eliminar
+/*/eliminar
 map.on(L.Draw.Event.CREATED, function (event) {
   const layer = event.layer;
 
@@ -548,7 +602,295 @@ map.on(L.Draw.Event.CREATED, function (event) {
 
 
       drawnItems.addLayer(layer);
+});*/
+
+
+/*
+map.on(L.Draw.Event.CREATED, function (event) {
+  const layer = event.layer;
+
+  // Serializar los datos
+  const geoJSON = layer.toGeoJSON();
+
+  // Solicitar más información al usuario
+  const popupContent = prompt("Escribe información para este marcador (opcional):");
+  const tipo = prompt("Escribe el tipo (basureros, contenedores de basura, etc.):");
+  const estado = prompt("Escribe el estado (lleno, vacío, en uso, etc.):");
+  const capacidad = prompt("Escribe la capacidad (en kg o unidades):");
+
+  // Asignar atributos adicionales
+  if (popupContent && tipo) {
+      geoJSON.properties = {
+          id: Date.now(), // Asignar un ID único
+          popup: popupContent,
+          tipo: tipo,
+          estado: estado || "Desconocido",
+          capacidad: capacidad || "No especificada",
+      };
+  }
+
+  // Guardar en Local Storage
+  let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+  elementosGuardados.push(geoJSON);
+  localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+  // Agregar un popup con la información y botón de eliminar
+  layer.bindPopup(`
+    <table>
+        <tr><td><b>Información:</b></td><td>${geoJSON.properties.popup || "Sin descripción"}</td></tr>
+        <tr><td><b>Tipo:</b></td><td>${geoJSON.properties.tipo || "Sin tipo"}</td></tr>
+        <tr><td><b>Estado:</b></td><td>${geoJSON.properties.estado || "Desconocido"}</td></tr>
+        <tr><td><b>Capacidad:</b></td><td>${geoJSON.properties.capacidad || "No especificada"}</td></tr>
+    </table>
+    <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${geoJSON.properties.id})">Eliminar</button>
+`);
+
+  // Añadir a la capa de elementos dibujados
+  drawnItems.addLayer(layer);
+});*/
+
+
+// Definir iconos personalizados
+const iconos = {
+  basureros: L.icon({
+      iconUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2PEU7ikPQuSFpKDHjU5DsOblFW13QB0eI4g&s',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+  }),
+  contenedores: L.icon({
+      iconUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAIy1q0Bem9R5LA_nVdmMc3CVSAHGhy5HkeQ&s',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+  }),
+};
+
+// Usar íconos según el tipo SOLO para marcadores
+map.on(L.Draw.Event.CREATED, function (event) {
+  const layer = event.layer;
+
+  // Verificar si es un marcador
+  if (layer instanceof L.Marker) {
+      // Solicitar información del marcador
+      const tipo = prompt("Escribe el tipo (basureros, contenedores, etc.):");
+
+      if (tipo && iconos[tipo]) {
+          layer.setIcon(iconos[tipo]); // Asignar el ícono según el tipo
+      }
+
+      // Continuar con el flujo normal de almacenamiento y popup
+      const geoJSON = layer.toGeoJSON();
+      const popupContent = prompt("Escribe información para este marcador (opcional):");
+
+      geoJSON.properties = {
+          id: Date.now(),
+          popup: popupContent || "Sin descripción",
+          tipo: tipo || "Sin tipo",
+      };
+
+      // Guardar en Local Storage
+      let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+      elementosGuardados.push(geoJSON);
+      localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+      // Agregar el popup con la información
+      layer.bindPopup(`
+        <table>
+            <tr><td><b>Descripción:</b></td><td>${geoJSON.properties.popup}</td></tr>
+            <tr><td><b>Tipo:</b></td><td>${geoJSON.properties.tipo}</td></tr>
+        </table>
+      `).addTo(map);
+  } else {
+      console.log("El elemento creado no es un marcador.");
+  }
 });
+
+
+
+
+
+// Declarar currentLatLng como variable global
+let currentLatLng = null;
+
+// Variable global para controlar si se está utilizando una herramienta de dibujo
+let isDrawing = false;
+
+// Detectar cuándo se inicia una herramienta de dibujo
+map.on('draw:drawstart', function () {
+    isDrawing = true; // Activar el indicador de dibujo
+});
+
+// Detectar cuándo se termina la herramienta de dibujo
+map.on('draw:drawstop', function () {
+    isDrawing = false; // Desactivar el indicador de dibujo
+});
+
+// Manejar el clic en el mapa para abrir el modal solo si no estás dibujando
+map.on('click', function (e) {
+    if (isDrawing) return; // Si se está dibujando, no abrir el modal
+
+    currentLatLng = e.latlng; // Asignar la latitud y longitud al hacer clic
+    const modal = new bootstrap.Modal(document.getElementById('markerModal'));
+    modal.show();
+});
+
+// Manejar el guardado del marcador
+document.getElementById("guardarMarcador").addEventListener("click", function () {
+    if (!currentLatLng) {
+        alert("Por favor, haga clic en el mapa para seleccionar una ubicación antes de agregar un marcador.");
+        return;
+    }
+
+    const popupContent = document.getElementById("popupContent").value;
+    const tipo = document.getElementById("tipo").value;
+    const estado = document.getElementById("estado").value;
+    const capacidad = document.getElementById("capacidad").value;
+
+    if (!popupContent || !tipo) {
+        alert("Debe completar al menos la descripción y el tipo para guardar el marcador.");
+        return;
+    }
+
+    // Crear el marcador con el ícono según el tipo
+    const marcador = L.marker(currentLatLng, { icon: iconos[tipo] }).bindPopup(`
+      <table>
+        <tr><td><b>Descripción:</b></td><td>${popupContent}</td></tr>
+        <tr><td><b>Tipo:</b></td><td>${tipo}</td></tr>
+        <tr><td><b>Estado:</b></td><td>${estado || "Desconocido"}</td></tr>
+        <tr><td><b>Capacidad:</b></td><td>${capacidad || "No especificada"}</td></tr>
+      </table>
+    `);
+
+    // Agregar el marcador al mapa
+    marcador.addTo(map);
+
+    // Convertir a GeoJSON y agregar propiedades adicionales
+    const geoJSON = marcador.toGeoJSON();
+    geoJSON.properties = {
+        id: Date.now(),
+        popupContent,
+        tipo,
+        estado: estado || "Desconocido",
+        capacidad: capacidad || "No especificada",
+    };
+
+    // Guardar en Local Storage
+    const elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+    elementosGuardados.push(geoJSON);
+    localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+    // Reiniciar currentLatLng para evitar errores
+    currentLatLng = null;
+
+    // Cerrar el modal después de guardar
+    const modal = bootstrap.Modal.getInstance(document.getElementById('markerModal'));
+    modal.hide();
+});
+
+
+
+
+
+
+/*/ Cargar marcadores desde Local Storage al iniciar
+const elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+
+// Iterar sobre los elementos guardados y agregarlos al mapa
+elementosGuardados.forEach(elemento => {
+    const tipo = elemento.properties.tipo;
+
+    const layer = L.geoJSON(elemento, {
+        pointToLayer: function (geoJsonPoint, latlng) {
+            // Asignar el icono correspondiente según el tipo
+            const icon = iconos[tipo] || new L.Icon.Default; // Si no existe un ícono para el tipo, usar el predeterminado
+            return L.marker(latlng, { icon });
+        }
+    });
+
+    // Añadir el popup con la información y el botón de eliminar
+    layer.bindPopup(`
+        <table>
+            <tr><td><b>Información:</b></td><td>${elemento.properties.popup || "Sin descripción"}</td></tr>
+            <tr><td><b>Tipo:</b></td><td>${elemento.properties.tipo || "Sin tipo"}</td></tr>
+            <tr><td><b>Estado:</b></td><td>${elemento.properties.estado || "Desconocido"}</td></tr>
+            <tr><td><b>Capacidad:</b></td><td>${elemento.properties.capacidad || "No especificada"}</td></tr>
+        </table>
+        <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${elemento.properties.id})">Eliminar</button>
+    `);
+
+    // Agregar al mapa y a la capa de elementos dibujados
+    layer.addTo(drawnItems);
+});*/
+// Crear grupos de capas
+const contenedoresLayer = L.layerGroup().addTo(map);
+const basurerosLayer = L.layerGroup().addTo(map);
+
+// Función para agregar elementos al mapa y a las capas
+function agregarElementoMapa(elemento) {
+    const tipo = elemento.properties.tipo;
+
+    // Determinar el grupo de capas según el tipo
+    let layerGroup = null;
+    if (tipo === "contenedores") {
+        layerGroup = contenedoresLayer;
+    } else if (tipo === "basureros") {
+        layerGroup = basurerosLayer;
+    }
+
+    // Asignar ícono según el tipo
+    const icon = iconos[tipo] || new L.Icon.Default();
+
+    const layer = L.geoJSON(elemento, {
+        pointToLayer: function (geoJsonPoint, latlng) {
+            return L.marker(latlng, { icon });
+        }
+    });
+
+    // Agregar popup con información
+    layer.bindPopup(`
+        <table>
+            <tr><td><b>Información:</b></td><td>${elemento.properties.popup || "Sin descripción"}</td></tr>
+            <tr><td><b>Tipo:</b></td><td>${elemento.properties.tipo || "Sin tipo"}</td></tr>
+            <tr><td><b>Estado:</b></td><td>${elemento.properties.estado || "Desconocido"}</td></tr>
+            <tr><td><b>Capacidad:</b></td><td>${elemento.properties.capacidad || "No especificada"}</td></tr>
+        </table>
+        <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${elemento.properties.id})">Eliminar</button>
+    `);
+
+    // Añadir a la capa correspondiente
+    if (layerGroup) {
+        layerGroup.addLayer(layer);
+    }
+}
+
+// Cargar elementos desde Local Storage
+const elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+elementosGuardados.forEach(agregarElementoMapa);
+
+// Botón para mostrar/ocultar basureros
+document.getElementById('toggleBasureros').addEventListener('click', function () {
+    if (map.hasLayer(basurerosLayer)) {
+        map.removeLayer(basurerosLayer);
+    } else {
+        map.addLayer(basurerosLayer);
+    }
+});
+
+// Botón para mostrar/ocultar contenedores
+document.getElementById('toggleContenedores').addEventListener('click', function () {
+    if (map.hasLayer(contenedoresLayer)) {
+        map.removeLayer(contenedoresLayer);
+    } else {
+        map.addLayer(contenedoresLayer);
+    }
+});
+
+
+
+
+
+
 
 
 document.getElementById('ocultarMarcador').addEventListener('click', function () {
@@ -563,6 +905,57 @@ document.getElementById('ocultarMarcador').addEventListener('click', function ()
 
 
 // Función para eliminar un elemento específico
+window.eliminarElemento = function(id) {
+  let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+
+  // Filtrar los elementos para eliminar el seleccionado
+  elementosGuardados = elementosGuardados.filter((elem) => elem.properties.id !== id);
+  localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+  // Recargar el mapa para reflejar los cambios
+  location.reload();
+};
+
+//-----------------------
+map.on(L.Draw.Event.CREATED, function (event) {
+  const layer = event.layer;
+
+  // Serializar los datos
+  const geoJSON = layer.toGeoJSON();
+
+  // Solicitar información adicional al usuario
+  const popupContent = prompt("Escribe información para este marcador (opcional):");
+  const tipo = prompt("Escribe el tipo (basureros, contenedores, etc.):");
+
+  if (popupContent && tipo) {
+      geoJSON.properties = {
+          id: Date.now(),
+          popup: popupContent,
+          tipo: tipo,
+      };
+  }
+
+  // Guardar en Local Storage
+  let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
+  elementosGuardados.push(geoJSON);
+  localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
+
+  // Agregar un popup con la información y botón de eliminar
+  layer.bindPopup(`
+      <table>
+          <tr><td><b>Información:</b></td><td>${geoJSON.properties.popup || "Sin descripción"}</td></tr>
+          <tr><td><b>Tipo:</b></td><td>${geoJSON.properties.tipo || "Sin tipo"}</td></tr>
+      </table>
+      <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${geoJSON.properties.id})">Eliminar</button>
+  `);
+
+  // Añadir al mapa
+  drawnItems.addLayer(layer);
+});
+
+
+
+
 
 
 
@@ -574,16 +967,3 @@ document.getElementById('ocultarMarcador').addEventListener('click', function ()
         }, 500);
     }
 });
-
-
-function eliminarElemento(id) {
-    console.log('hola mundo');
-    let elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
-
-    // Filtrar los elementos para eliminar el seleccionado
-    elementosGuardados = elementosGuardados.filter((elem) => elem.properties.id !== id);
-    localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
-
-    // Recargar el mapa para reflejar los cambios
-    location.reload();
-  }

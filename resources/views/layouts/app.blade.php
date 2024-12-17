@@ -22,11 +22,19 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+        <!--link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script-->
+
+
         <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.css" />
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 
     </head>

@@ -27,7 +27,59 @@
 
                         <button id="clearElements" class="btn btn-danger btn-sm mt-3">Eliminar todos los elementos</button>
 
+
+                        
+                        <button id="toggleBasureros" class="btn btn-primary btn-sm">Mostrar/Ocultar Basureros</button>
+                        <button id="toggleContenedores" class="btn btn-primary btn-sm">Mostrar/Ocultar Contenedores</button>
+                    
+
+
+
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#markerModal">
+  Agregar Marcador
+</button>
+
                     </div>
+
+
+                    <div id="markerModal" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar Marcador</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="markerForm">
+          <div class="mb-3">
+            <label for="popupContent" class="form-label">Descripción:</label>
+            <input type="text" class="form-control" id="popupContent" placeholder="Información del marcador">
+          </div>
+          <div class="mb-3">
+            <label for="tipo" class="form-label">Tipo:</label>
+            <select class="form-select" id="tipo">
+              <option value="basureros">Basureros</option>
+              <option value="contenedores">Contenedores</option>
+              <!-- Agrega más opciones aquí -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="estado" class="form-label">Estado:</label>
+            <input type="text" class="form-control" id="estado" placeholder="Ejemplo: lleno, vacío">
+          </div>
+          <div class="mb-3">
+            <label for="capacidad" class="form-label">Capacidad:</label>
+            <input type="text" class="form-control" id="capacidad" placeholder="Ejemplo: 50kg">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="guardarMarcador">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
                 </div>
             </div>
