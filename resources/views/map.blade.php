@@ -15,7 +15,7 @@
 <body>
     <div id="map"></div>
     <script>
-        // Inicializar el mapa
+        /*/ Inicializar el mapa
         const map = L.map('map').setView([-17.971258, -67.110665], 13);
 
         // Añadir capa base
@@ -41,7 +41,7 @@
                     }
                 });
             })
-            .catch(err => console.error('Error al cargar los elementos del mapa:', err));
+            .catch(err => console.error('Error al cargar los elementos del mapa:', err));*/
     </script>
 </body>
 </html>

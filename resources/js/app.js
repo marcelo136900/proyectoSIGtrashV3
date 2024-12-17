@@ -825,44 +825,53 @@ elementosGuardados.forEach(elemento => {
 // Crear grupos de capas
 const contenedoresLayer = L.layerGroup().addTo(map);
 const basurerosLayer = L.layerGroup().addTo(map);
+const rutasLayer = L.layerGroup().addTo(map);
 
 // Función para agregar elementos al mapa y a las capas
+// Función para agregar elementos al mapa y a las capas
 function agregarElementoMapa(elemento) {
-    const tipo = elemento.properties.tipo;
+  const tipo = elemento.properties.tipo;
 
-    // Determinar el grupo de capas según el tipo
-    let layerGroup = null;
-    if (tipo === "contenedores") {
-        layerGroup = contenedoresLayer;
-    } else if (tipo === "basureros") {
-        layerGroup = basurerosLayer;
-    }
+  // Manejar Marcadores (Point)
+  if (elemento.geometry.type === "Point") {
+      const icon = iconos[tipo] || new L.Icon.Default();
+      const marker = L.geoJSON(elemento, {
+          pointToLayer: function (geoJsonPoint, latlng) {
+              return L.marker(latlng, { icon });
+          }
+      }).bindPopup(`
+          <table>
+              <tr><td><b>Información:</b></td><td>${elemento.properties.popup || "Sin descripción"}</td></tr>
+              <tr><td><b>Tipo:</b></td><td>${elemento.properties.tipo || "Sin tipo"}</td></tr>
+              <tr><td><b>Estado:</b></td><td>${elemento.properties.estado || "Desconocido"}</td></tr>
+              <tr><td><b>Capacidad:</b></td><td>${elemento.properties.capacidad || "No especificada"}</td></tr>
+          </table>
+          <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${elemento.properties.id})">Eliminar</button>
+      `);
 
-    // Asignar ícono según el tipo
-    const icon = iconos[tipo] || new L.Icon.Default();
-
-    const layer = L.geoJSON(elemento, {
-        pointToLayer: function (geoJsonPoint, latlng) {
-            return L.marker(latlng, { icon });
-        }
-    });
-
-    // Agregar popup con información
-    layer.bindPopup(`
+      // Añadir a la capa según el tipo
+      if (tipo === "contenedores") {
+          contenedoresLayer.addLayer(marker);
+      } else if (tipo === "basureros") {
+          basurerosLayer.addLayer(marker);
+      }
+  }
+  // Manejar Rutas o Líneas (LineString)
+  else if (elemento.geometry.type === "LineString") {
+    const ruta = L.geoJSON(elemento, {
+        style: { color: "blue", weight: 4 }
+    }).bindPopup(`
         <table>
-            <tr><td><b>Información:</b></td><td>${elemento.properties.popup || "Sin descripción"}</td></tr>
-            <tr><td><b>Tipo:</b></td><td>${elemento.properties.tipo || "Sin tipo"}</td></tr>
-            <tr><td><b>Estado:</b></td><td>${elemento.properties.estado || "Desconocido"}</td></tr>
-            <tr><td><b>Capacidad:</b></td><td>${elemento.properties.capacidad || "No especificada"}</td></tr>
+            <tr><td><b>Tipo:</b></td><td>${elemento.properties.tipo || "Ruta"}</td></tr>
+            <tr><td><b>Información:</b></td><td>${elemento.properties.popup || "Ruta guardada"}</td></tr>
         </table>
         <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${elemento.properties.id})">Eliminar</button>
     `);
 
-    // Añadir a la capa correspondiente
-    if (layerGroup) {
-        layerGroup.addLayer(layer);
-    }
+    rutasLayer.addLayer(ruta); // Añadir la ruta a la capa de rutas
 }
+}
+
 
 // Cargar elementos desde Local Storage
 const elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
@@ -920,18 +929,36 @@ window.eliminarElemento = function(id) {
 map.on(L.Draw.Event.CREATED, function (event) {
   const layer = event.layer;
 
-  // Serializar los datos
+  // Convertir a GeoJSON
   const geoJSON = layer.toGeoJSON();
 
-  // Solicitar información adicional al usuario
-  const popupContent = prompt("Escribe información para este marcador (opcional):");
-  const tipo = prompt("Escribe el tipo (basureros, contenedores, etc.):");
+  // Determinar si es un marcador o una forma (ruta, polígono, etc.)
+  let tipo = "ruta"; // Valor predeterminado para líneas y polígonos
+  let popupContent = "";
 
-  if (popupContent && tipo) {
+  if (layer instanceof L.Marker) {
+      // Solicitar información solo para marcadores
+      popupContent = prompt("Escribe información para este marcador (opcional):");
+      tipo = prompt("Escribe el tipo (basureros, contenedores, etc.):") || "Sin tipo";
+
+      if (popupContent) {
+          geoJSON.properties = {
+              id: Date.now(),
+              popup: popupContent,
+              tipo: tipo,
+          };
+      }
+
+      // Asignar ícono para marcadores si existe
+      if (iconos[tipo]) {
+          layer.setIcon(iconos[tipo]);
+      }
+  } else {
+      // Para líneas o polígonos, asignar propiedades predeterminadas
       geoJSON.properties = {
           id: Date.now(),
-          popup: popupContent,
           tipo: tipo,
+          popup: "Ruta o forma guardada",
       };
   }
 
@@ -940,18 +967,19 @@ map.on(L.Draw.Event.CREATED, function (event) {
   elementosGuardados.push(geoJSON);
   localStorage.setItem('mapElements', JSON.stringify(elementosGuardados));
 
-  // Agregar un popup con la información y botón de eliminar
+  // Asignar popup para rutas/polígonos
   layer.bindPopup(`
       <table>
-          <tr><td><b>Información:</b></td><td>${geoJSON.properties.popup || "Sin descripción"}</td></tr>
-          <tr><td><b>Tipo:</b></td><td>${geoJSON.properties.tipo || "Sin tipo"}</td></tr>
+          <tr><td><b>Tipo:</b></td><td>${geoJSON.properties.tipo}</td></tr>
+          <tr><td><b>Información:</b></td><td>${geoJSON.properties.popup}</td></tr>
       </table>
       <button class="btn btn-danger btn-sm" onclick="eliminarElemento(${geoJSON.properties.id})">Eliminar</button>
   `);
 
-  // Añadir al mapa
+  // Añadir la capa al mapa
   drawnItems.addLayer(layer);
 });
+
 
 
 

@@ -134,7 +134,7 @@
 
 
 <!-- Contenedor del mapa -->
-<div id="map" style="height: 500px; width: 100%;"></div>
+<div id="welcome-map" style="height: 500px; width: 100%;"></div>
                     
                     <!-- Botones de control -->
                     <div class="button-group mt-3">
@@ -144,6 +144,28 @@
                         <button id="toggleRoutes" class="btn btn-warning">Mostrar/Ocultar Rutas</button>
                         <button id="toggle-markers" class="btn btn-primary">Mostrar/Ocultar Marcadores</button>
                         <button id="toggle-shapes" class="btn btn-secondary">Mostrar/Ocultar Formas</button>
+
+
+
+                        <button id="toggleBasureros" class="btn btn-primary btn-sm">Mostrar/Ocultar Basureros</button>
+                        <button id="toggleContenedores" class="btn btn-primary btn-sm">Mostrar/Ocultar Contenedores</button>
+
+
+                        <button id="toggleRutas" class="btn btn-primary btn-sm">Mostrar/Ocultar Rutas</button>
+
+
+
+                        <button id="miUbicacion" class="btn btn-success">Mi Ubicación</button>
+
+
+
+                        <button id="exportarJson" class="btn btn-primary">Exportar JSON</button>
+
+
+
+
+
+
                     </div>
 
 
@@ -192,41 +214,217 @@
 
 
 <script>
-    // Inicializar el mapa
-    var map = L.map('map').setView([-17.9647, -67.1067], 13);
+    // Destruir el mapa existente si ya está inicializado
+if (window.mapInstance && window.mapInstance.remove) {
+    window.mapInstance.remove();
+}
 
-    // Añadir capa base
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+// Inicializar el mapa
+window.mapInstance = L.map('welcome-map').setView([-17.9647, -67.1067], 13);
 
-    // Añadir Leaflet Routing Machine
-    L.Routing.control({
-        waypoints: [
-            L.latLng(-17.9647, -67.1067), // Punto inicial
-            L.latLng(-17.9764, -67.1038)  // Punto final
-        ],
-        routeWhileDragging: true, // Permite mover los puntos de la ruta
-    }).addTo(map);
+// Añadir capa base
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(window.mapInstance);
 
 
+// Configurar el Routing Machine
+L.Routing.control({
+    waypoints: [
+        L.latLng(-17.9647, -67.1067), // Punto inicial
+        L.latLng(-17.9764, -67.1038)  // Punto final
+    ],
+    routeWhileDragging: true, // Permite mover los puntos de la ruta
+    lineOptions: {
+        styles: [{ color: 'green', weight: 4 }] // Personalización de la línea de ruta
+    }
+}).addTo(window.mapInstance);
 
-    // Recuperar elementos de Local Storage
+
+
+// Definir iconos personalizados
+const iconos = {
+    basureros: L.icon({
+        iconUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2PEU7ikPQuSFpKDHjU5DsOblFW13QB0eI4g&s',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    }),
+    contenedores: L.icon({
+        iconUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAIy1q0Bem9R5LA_nVdmMc3CVSAHGhy5HkeQ&s',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+    }),
+};
+
+// Recuperar elementos de LocalStorage
 const elementosGuardados = JSON.parse(localStorage.getItem('mapElements')) || [];
 
-// Renderizar los elementos con popups
-elementosGuardados.forEach((geoJSON) => {
-    const layer = L.geoJSON(geoJSON, {
-        onEachFeature: function (feature, layer) {
-            if (feature.properties && feature.properties.popup) {
-                layer.bindPopup(feature.properties.popup);
-            }
-        },
-    });
+// Función auxiliar para validar GeoJSON
+function validarGeoJSON(geoJSON) {
+    return geoJSON &&
+           geoJSON.type === 'Feature' &&
+           geoJSON.geometry &&
+           (geoJSON.geometry.type === 'Point' || geoJSON.geometry.type === 'LineString' || geoJSON.geometry.type === 'Polygon');
+}
 
-    layer.addTo(map);
+
+// Crear grupos de capas para basureros, contenedores y rutas
+const basurerosLayer = L.layerGroup();
+const contenedoresLayer = L.layerGroup();
+const rutasLayer = L.layerGroup(); // Nueva capa para rutas
+
+
+// Renderizar los elementos guardados con validación
+elementosGuardados.forEach((geoJSON) => {
+    try {
+        if (!validarGeoJSON(geoJSON)) {
+            console.warn("Elemento inválido encontrado:", geoJSON);
+            return; // Salta los elementos inválidos
+        }
+
+        // Si es un marcador (Point)
+        if (geoJSON.geometry.type === "Point") {
+            const tipo = geoJSON.properties?.tipo || "default";
+            const icono = iconos[tipo] || new L.Icon.Default();
+
+            const marker = L.marker(
+                [geoJSON.geometry.coordinates[1], geoJSON.geometry.coordinates[0]],
+                { icon: icono }
+            ).bindPopup(`
+                <table>
+                    <tr><td><b>Descripción:</b></td><td>${geoJSON.properties?.popup || "Sin descripción"}</td></tr>
+                    <tr><td><b>Tipo:</b></td><td>${geoJSON.properties?.tipo || "Sin tipo"}</td></tr>
+                    <tr><td><b>Estado:</b></td><td>${geoJSON.properties?.estado || "Desconocido"}</td></tr>
+                    <tr><td><b>Capacidad:</b></td><td>${geoJSON.properties?.capacidad || "No especificada"}</td></tr>
+                </table>
+            `);
+
+            // Añadir el marcador a su respectiva capa
+            if (tipo === "basureros") {
+                basurerosLayer.addLayer(marker);
+            } else if (tipo === "contenedores") {
+                contenedoresLayer.addLayer(marker);
+            }
+        } 
+        // Si es una ruta (LineString)
+        else if (geoJSON.geometry.type === "LineString") {
+            const ruta = L.geoJSON(geoJSON, {
+                style: { color: "blue", weight: 4 } // Estilo para las rutas
+            }).bindPopup("Ruta Guardada");
+
+            rutasLayer.addLayer(ruta); // Añadir la ruta a su capa
+        }
+    } catch (error) {
+        console.error("Error al procesar un elemento:", error, geoJSON);
+    }
 });
+
+// Agregar las capas al mapa
+basurerosLayer.addTo(window.mapInstance);
+contenedoresLayer.addTo(window.mapInstance);
+rutasLayer.addTo(window.mapInstance); // Añadir la capa de rutas
+
+
+
+
+// Funcionalidad para mostrar/ocultar basureros
+document.getElementById("toggleBasureros").addEventListener("click", function () {
+    if (window.mapInstance.hasLayer(basurerosLayer)) {
+        window.mapInstance.removeLayer(basurerosLayer);
+    } else {
+        window.mapInstance.addLayer(basurerosLayer);
+    }
+});
+
+// Funcionalidad para mostrar/ocultar contenedores
+document.getElementById("toggleContenedores").addEventListener("click", function () {
+    if (window.mapInstance.hasLayer(contenedoresLayer)) {
+        window.mapInstance.removeLayer(contenedoresLayer);
+    } else {
+        window.mapInstance.addLayer(contenedoresLayer);
+    }
+});
+
+// Funcionalidad para mostrar/ocultar rutas
+document.getElementById("toggleRutas").addEventListener("click", function () {
+    if (window.mapInstance.hasLayer(rutasLayer)) {
+        window.mapInstance.removeLayer(rutasLayer);
+    } else {
+        window.mapInstance.addLayer(rutasLayer);
+    }
+});
+
+
+
+
+
+// Botón para centrar y mostrar la ubicación del usuario
+document.getElementById("miUbicacion").addEventListener("click", function () {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                const { latitude, longitude } = position.coords;
+
+                // Centrar el mapa en la ubicación
+                window.mapInstance.setView([latitude, longitude], 15);
+
+                // Añadir marcador en la ubicación actual
+                const ubicacionMarker = L.marker([latitude, longitude], {
+                    title: "Tu ubicación"
+                }).bindPopup("<b>Estás aquí</b>").addTo(window.mapInstance);
+
+                // Abrir popup automáticamente
+                ubicacionMarker.openPopup();
+            },
+            function (error) {
+                console.error("Error al obtener la ubicación: ", error);
+                alert("No se pudo obtener tu ubicación. Asegúrate de dar permisos de geolocalización.");
+            }
+        );
+    } else {
+        alert("Tu navegador no soporta la geolocalización.");
+    }
+});
+
+
+
+
+
+
+
+// Funcionalidad para exportar los datos del mapa a un archivo JSON
+document.getElementById("exportarJson").addEventListener("click", function () {
+    // Obtener los elementos guardados en el Local Storage
+    const elementosGuardados = localStorage.getItem("mapElements");
+
+    if (!elementosGuardados || elementosGuardados === "[]") {
+        alert("No hay elementos para exportar.");
+        return;
+    }
+
+    // Crear un archivo Blob con los datos en formato JSON
+    const blob = new Blob([elementosGuardados], { type: "application/json" });
+
+    // Crear un enlace temporal para descargar el archivo
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "mapa-datos.json";
+    link.click();
+
+    // Liberar el objeto URL
+    URL.revokeObjectURL(link.href);
+});
+
+
+
+
+
+
+
+
 
 
 </script>
